@@ -162,7 +162,7 @@ section('insider buys vs SEC Form 4 filings');
       if ((r.transactionType || '').trim() !== 'Buy') continue;
       const d = new Date(r.lastDate);
       if (Date.now() - d > 75 * 864e5) continue;
-      rows.push({ s, who: r.insider, date: d, shares: num(r.sharesTraded), price: num(r.lastPrice), held: num(r.sharesHeld) });
+      rows.push({ s, who: r.insider, rawDate: r.lastDate, date: d, shares: num(r.sharesTraded), price: num(r.lastPrice), held: num(r.sharesHeld) });
     }
     if (rows.length >= 6) break;
   }
@@ -196,6 +196,26 @@ section('insider buys vs SEC Form 4 filings');
     }
   }
   if (!rows.length) console.log('  (no open-market insider buys in the sample window — nothing to verify today)');
+
+  // Every row's link must land on the SEC's own record of that purchase. Built
+  // with the extension's code, from the name exactly as the extension stores
+  // it, then run as the same search on SEC full-text search.
+  section('each insider row links to its SEC filing');
+  for (const r of rows) {
+    const who = N.titleCase(r.who);
+    const url = R.secFilingUrl(r.s, who, r.rawDate);
+    const params = Object.fromEntries(new URLSearchParams(url.split('#/')[1]));
+    const api = 'https://efts.sec.gov/LATEST/search-index?' + new URLSearchParams(params).toString();
+    const hits = (await (await get(api, SEC_UA, 'application/json')).json())?.hits?.hits || [];
+    const issuer = `CIK ${CIK[r.s]}`;
+    const surname = who.split(/\s+/)[0].toUpperCase();
+    const match = hits.find((h) => (h._source?.display_names || []).some((n) => n.includes(issuer))
+      && (h._source?.display_names || []).some((n) => n.toUpperCase().includes(surname))
+      && (h._source?.root_forms || h._source?.forms || []).some((f) => String(f).startsWith('4')));
+    check(`${r.s.padEnd(5)} ${who}: link finds the Form 4 (${hits.length} result${hits.length === 1 ? '' : 's'})`, Boolean(match),
+      { url, hits: hits.slice(0, 3).map((h) => h._source?.display_names) });
+    await new Promise((res) => setTimeout(res, 150));
+  }
 }
 
 done('data accuracy');

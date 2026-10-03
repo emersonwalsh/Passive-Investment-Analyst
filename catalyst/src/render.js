@@ -80,6 +80,31 @@ export function money(v) {
  * mechanical majority. Renders nothing at all when there is nothing to say, so
  * a quiet watchlist costs no vertical space.
  */
+/**
+ * Where an insider purchase can be checked: the SEC's own full-text search for
+ * that person's Form 4 at that company, filed within ten days of the trade
+ * (Form 4s are due within two business days).
+ *
+ * Nasdaq supplies no filing ID, and its insider IDs are not SEC CIKs (0 of 79
+ * matched), so the link is built from what every Form 4 contains: the filer's
+ * name and the company's ticker. Checked against known filings it landed on
+ * exactly the filing in 5 of 6 cases, and on that filing plus one other by the
+ * same person in the sixth.
+ *
+ * `who` is Nasdaq's "Last First Middle"; `date` is m/d/yyyy (ISO also accepted).
+ */
+export function secFilingUrl(sym, who, date) {
+  const surname = String(who || '').trim().split(/\s+/)[0].replace(/[.,;]+$/, '');
+  const q = surname ? `"${surname}" "${sym}"` : `"${sym}"`;
+  const d = String(date || '').trim();
+  const us = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(d);
+  const iso = /^(\d{4})-(\d{2})-(\d{2})$/.exec(d);
+  const start = us ? Date.UTC(+us[3], +us[1] - 1, +us[2]) : iso ? Date.UTC(+iso[1], +iso[2] - 1, +iso[3]) : null;
+  const day = (t) => new Date(t).toISOString().slice(0, 10);
+  const range = start == null ? '' : `&dateRange=custom&startdt=${day(start)}&enddt=${day(start + 864e6)}`;
+  return `https://www.sec.gov/edgar/search/#/q=${encodeURIComponent(q)}${range}&forms=4`;
+}
+
 export function renderInsiders(symbols, insiders) {
   const data = insiders.data || {};
   const flat = [];
@@ -102,7 +127,10 @@ export function renderInsiders(symbols, insiders) {
     rows += `<li class="row buy anim" style="--i:${idx++}">`
       + `<span class="sym">${esc(h.s)}</span>`
       + `<span class="evt">${esc(h.who)}${role}${stake}</span>`
-      + `<span class="rel u">${money(h.value)}</span></li>`;
+      + `<span class="rel u">${money(h.value)}</span>`
+      // The whole row opens the filing; an overlay keeps the layout untouched.
+      + `<a class="rlink" href="${esc(secFilingUrl(h.s, h.who, h.date))}" target="_blank" rel="noreferrer noopener"`
+      + ` title="View the SEC filing" aria-label="View SEC filing: ${esc(h.who)}, ${esc(h.s)}"></a></li>`;
   }
   return `${SECTION_INSIDERS}<div class="grp"><ul class="rows">${rows}</ul></div>`;
 }

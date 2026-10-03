@@ -15,7 +15,7 @@ import { isRegularHours, marketPhase, lastSettledCloseAt } from './market-hours.
  * stale worker paired with fresh UI is easy to mistake for a data bug.
  * `diag.build` makes that state visible instead of guessable.
  */
-const BUILD = '1.6.3';
+const BUILD = '1.7.0';
 
 const QUOTES_ALARM = 'refresh-quotes';
 const CATALYSTS_ALARM = 'refresh-catalysts';

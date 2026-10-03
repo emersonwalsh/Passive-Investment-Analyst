@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Passive Investment Analyst",
-  "version": "1.6.3",
+  "version": "1.7.0",
   "description": "Upcoming earnings, insider buying and prices for the stocks you track \u2014 every time you open a tab.",
   "minimum_chrome_version": "115",
   "chrome_url_overrides": {

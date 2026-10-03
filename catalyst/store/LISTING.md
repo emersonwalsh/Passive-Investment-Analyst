@@ -58,7 +58,8 @@ market-data sources solely to fetch their prices and dates. There is no backend
 to leak anything.
 
 WHAT YOU GET
-• Notable insider buying — only real open-market purchases, never RSU noise
+• Notable insider buying — only real open-market purchases, never RSU noise.
+  Click any purchase to review the SEC filing it came from
 • Earnings dates for up to 25 tickers, grouped by This week / Next week / Later
 • Projected dates (estimated from a company's past reporting pattern) are clearly
   marked

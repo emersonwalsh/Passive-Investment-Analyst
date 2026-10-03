@@ -170,7 +170,10 @@ section('earnings surprises are stated proportionately');
   // Nasdaq's holdings figure belongs to whichever account the purchase went
   // through (an Oracle director's trust read "+6410.3%"), so no stake is shown.
   const ins = runBoot(base(), NOW).up;
-  check('insider rows show who, role and value — no stake percentage', /Tan Lip Bu &middot; Chief Executive Officer<\/span>/.test(ins) && !/%/.test(ins.match(/<li class="row buy[\s\S]*?<\/li>/)?.[0] || '%'), ins.match(/<li class="row buy[\s\S]*?<\/li>/)?.[0]);
+  // Judge what is SHOWN: the row's text, not the SEC link's URL-encoded href.
+  const insRow = ins.match(/<li class="row buy[\s\S]*?<\/li>/)?.[0] || '';
+  const shown = insRow.replace(/<a class="rlink"[^>]*><\/a>/, '').replace(/<[^>]+>/g, '');
+  check('insider rows show who, role and value — no stake percentage', /Tan Lip Bu &middot; Chief Executive Officer<\/span>/.test(ins) && insRow && !/%/.test(shown), shown);
   const newPos = runBoot(CASES.find(([n]) => n.startsWith('new insider'))[1], NOW).up;
   check('and no "new position" claim either', !/new (direct )?position/.test(newPos));
 }
@@ -190,6 +193,31 @@ section('card names read as companies');
   check('a company whose NAME contains those words is left alone', />Stockholm Capital Shares Fund<\/span>/.test(hold));
 }
 
+section('insider rows open their SEC filing');
+{
+  // Nasdaq stores the trade date as m/d/yyyy; the base fixture's ISO date checks
+  // the other accepted format.
+  const real = mut((c) => {
+    c.symbols.push('ORCL');
+    c.quotes.data.ORCL = { price: 142.3, changePct: 3.06, prevClose: 138.07 };
+    c.insiders.data = { ORCL: [{ who: 'Rusckowski Stephen H', role: 'Director', date: '9/29/2026', days: 4, shares: 25000, price: 139.35, value: 3483750, stakePct: 6410.3, isNew: false }] };
+  });
+  const up = runBoot(real, NOW).up;
+  const rows = up.match(/<li class="row buy[\s\S]*?<\/li>/g) || [];
+  check('every insider row carries exactly one link', rows.length > 0 && rows.every((r) => (r.match(/<a class="rlink"/g) || []).length === 1), rows);
+  // the URL verified by hand in the SEC's own search page: exactly one result,
+  // RUSCKOWSKI STEPHEN H's Form 4 at ORACLE CORP, filed 2026-10-01
+  const want = 'https://www.sec.gov/edgar/search/#/q=%22Rusckowski%22%20%22ORCL%22&amp;dateRange=custom&amp;startdt=2026-09-29&amp;enddt=2026-10-09&amp;forms=4';
+  check('it points at that Form 4 search, as verified on sec.gov', up.includes(`href="${want}"`), up.match(/href="[^"]*sec\.gov[^"]*"/)?.[0]);
+  check('it opens in a new tab without leaking the page', /target="_blank" rel="noreferrer noopener"/.test(rows[0] || ''));
+  check('it has an accessible name', /aria-label="View SEC filing: Rusckowski Stephen H, ORCL"/.test(up));
+  check('ampersands are escaped inside the attribute', !/href="[^"]*&(?!amp;)/.test(up));
+  const iso = runBoot(base(), NOW).up;
+  check('an ISO trade date gives the same ten-day window', /startdt=\d{4}-\d{2}-\d{2}&amp;enddt=\d{4}-\d{2}-\d{2}/.test(iso), iso.match(/href="[^"]*"/)?.[0]);
+  const noDate = runBoot(mut((c) => { c.insiders.data.INTC[0].date = 'soon'; }), NOW).up;
+  check('an unreadable date still links, just without a date window', /q=%22Tan%22%20%22INTC%22&amp;forms=4"/.test(noDate), noDate.match(/href="[^"]*"/)?.[0]);
+}
+
 section('output safety');
 {
   const c = CASES.find(([n]) => n.startsWith('hostile'))[1];
@@ -199,6 +227,10 @@ section('output safety');
   check('no live <script> tag', !/<script/i.test(all));
   check('quotes cannot break out of an attribute', !/"'&<script/.test(all) && !/onerror=alert\(1\)>"/.test(all));
   check('the text is still shown, escaped', all.includes('&lt;img src=x onerror=alert(1)&gt;'));
+  // A hostile name lands in the link's href (URL-encoded) and aria-label
+  // (HTML-escaped); neither may close the attribute or open a tag.
+  const link = all.match(/<a class="rlink"[^>]*><\/a>/)?.[0] || '';
+  check('a hostile insider name cannot break out of the SEC link', link && (link.match(/"/g) || []).length === 12 && !/<img|<script/i.test(link), link);
 }
 
 section('projected dates are honest');

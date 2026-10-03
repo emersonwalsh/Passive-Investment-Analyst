@@ -51,6 +51,15 @@ function surp(p,act,con){
   return{text:verb+' '+a.toFixed(1)+'%',dir:dir};
 }
 function sm(v){return (v<0?'&minus;':'')+'$'+Math.abs(v).toFixed(2);}
+/* mirror of secFilingUrl() in render.js */
+function secUrl(s,who,d){
+  var sur=String(who||'').replace(/^\s+|\s+$/g,'').split(/\s+/)[0].replace(/[.,;]+$/,'');
+  var q=sur?'"'+sur+'" "'+s+'"':'"'+s+'"';
+  var ds=String(d||'').replace(/^\s+|\s+$/g,''), us=/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(ds), is=/^(\d{4})-(\d{2})-(\d{2})$/.exec(ds);
+  var st=us?Date.UTC(+us[3],+us[1]-1,+us[2]):is?Date.UTC(+is[1],+is[2]-1,+is[3]):null;
+  var rng=st==null?'':'&dateRange=custom&startdt='+new Date(st).toISOString().slice(0,10)+'&enddt='+new Date(st+864e6).toISOString().slice(0,10);
+  return 'https://www.sec.gov/edgar/search/#/q='+encodeURIComponent(q)+rng+'&forms=4';
+}
 function esc(s){return String(s).replace(/[&<>"]/g,function(ch){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch];});}
 
 /* header */
@@ -119,7 +128,9 @@ if(c.showInsiders!==false&&c.insiders&&c.insiders.data){
       irows+='<li class="row buy anim" style="--i:'+(iidx++)+'">'+
         '<span class="sym">'+esc(fs)+'</span>'+
         '<span class="evt">'+esc(fh.who)+rol+stk+'</span>'+
-        '<span class="rel u">'+money(fh.value)+'</span></li>';
+        '<span class="rel u">'+money(fh.value)+'</span>'+
+        '<a class="rlink" href="'+esc(secUrl(fs,fh.who,fh.date))+'" target="_blank" rel="noreferrer noopener"'+
+        ' title="View the SEC filing" aria-label="View SEC filing: '+esc(fh.who)+', '+esc(fs)+'"></a></li>';
     }
     INS=SECI+'<div class="grp"><ul class="rows">'+irows+'</ul></div>';
   }

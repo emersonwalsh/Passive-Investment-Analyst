@@ -282,6 +282,59 @@ try {
       q.ext && q.ext.price > 129.86 && Math.abs(q.ext.changePct - vsClose) <= 0.02, { ext: q.ext, close: q.price, vsClose });
   }
 
+  section('an insider row opens its SEC filing');
+  {
+    const sid = warm.sid;
+    const before = await S('chrome.storage.local.get("insiders")');
+    // Insider rows only show for tracked stocks, and earlier sections change
+    // the watchlist — so attach the purchase to whatever is tracked right now.
+    const sym = (await S('chrome.storage.local.get("symbols")')).symbols[0];
+    await S(`chrome.storage.local.get('insiders').then((x) => chrome.storage.local.set({ insiders: { ...x.insiders,
+      data: { ...(x.insiders.data || {}), ${JSON.stringify(sym)}: [{ who: 'Rusckowski Stephen H', role: 'Director', date: '9/29/2026', days: 4,
+        shares: 25000, price: 139.35, value: 3483750, stakePct: null, isNew: false }] } } }))`);
+    const shown = await until(() => b.cdp.eval(sid, `Boolean(document.querySelector('#up .row.buy .rlink'))`), 6000, 100);
+    check(`the insider row renders with its link (${sym})`, shown, await b.cdp.eval(sid, `document.getElementById('up')?.innerHTML.slice(0, 300)`));
+    if (!shown) throw new Error('insider row never rendered; the click checks below would be meaningless');
+    // A new tab reports its URL either on creation or once it starts loading.
+    const nextSecTab = () => new Promise((resolve) => {
+      const timer = setTimeout(() => { off(); resolve(null); }, 10000);
+      const off = b.cdp.on((m) => {
+        const t = m.params?.targetInfo;
+        if ((m.method === 'Target.targetCreated' || m.method === 'Target.targetInfoChanged') && t?.type === 'page' && /^https:\/\/www\.sec\.gov\//.test(t.url)) {
+          clearTimeout(timer); off(); resolve(t);
+        }
+      });
+    });
+    const expected = `https://www.sec.gov/edgar/search/#/q=%22Rusckowski%22%20%22${encodeURIComponent(sym)}%22&dateRange=custom&startdt=2026-09-29&enddt=2026-10-09&forms=4`;
+
+    // Mouse: click on the row's TEXT. The overlay must be what receives it.
+    const p = await b.cdp.eval(sid, `(() => { const e = document.querySelector('#up .row.buy .evt'); e.scrollIntoView({ block: 'center' });
+      const r = e.getBoundingClientRect(); return { x: r.left + 24, y: r.top + r.height / 2 }; })()`);
+    const viaMouse = nextSecTab();
+    for (const type of ['mouseMoved', 'mousePressed', 'mouseReleased']) {
+      await b.cdp.send('Input.dispatchMouseEvent', { type, x: p.x, y: p.y, button: 'left', clickCount: 1 }, sid);
+    }
+    const t1 = await viaMouse;
+    check('clicking the row text opens a new tab', Boolean(t1), t1);
+    check('at the SEC search for that person\'s Form 4', t1?.url === expected, t1?.url);
+    if (t1) await b.cdp.send('Target.closeTarget', { targetId: t1.targetId }).catch(() => {});
+    check('the new-tab page itself stays put', await b.cdp.eval(sid, `location.protocol === 'chrome-extension:'`));
+
+    // Keyboard: Tab to the row's link and press Enter.
+    await b.cdp.eval(sid, `document.querySelector('#up .row.buy .rlink').focus()`);
+    check('the link is reachable by keyboard', await b.cdp.eval(sid, `document.activeElement && document.activeElement.classList.contains('rlink')`));
+    const viaKey = nextSecTab();
+    await b.cdp.send('Input.dispatchKeyEvent', { type: 'rawKeyDown', key: 'Enter', code: 'Enter', windowsVirtualKeyCode: 13 }, sid);
+    await b.cdp.send('Input.dispatchKeyEvent', { type: 'char', key: 'Enter', text: '\r' }, sid);
+    await b.cdp.send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Enter', code: 'Enter', windowsVirtualKeyCode: 13 }, sid);
+    const t2 = await viaKey;
+    check('Enter on the focused row opens the same filing', t2?.url === expected, t2?.url);
+    if (t2) await b.cdp.send('Target.closeTarget', { targetId: t2.targetId }).catch(() => {});
+
+    await S(`chrome.storage.local.set({ insiders: ${JSON.stringify(before.insiders)} })`);
+    await until(() => b.cdp.eval(sid, `!document.querySelector('#up .row.buy .rlink[href*="Rusckowski"]')`), 6000, 100);
+  }
+
   section('add and remove a ticker through the real UI');
   {
     const sid = warm.sid;

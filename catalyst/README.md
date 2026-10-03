@@ -281,6 +281,7 @@ never written to the `localStorage` mirror.
 | Prices | match CNBC's consolidated close to the cent, 22 tickers incl. NYSE, ADRs, ETFs, BRK.B |
 | Quotes in every session | 1,364 live samples over 17 days replayed through the real code: all match CNBC, exact to the cent outside the live session |
 | Card links | every venue resolves on Google Finance, incl. Cboe BZX ETFs |
+| Insider rows link to the source | every live insider buy's link finds that filer's Form 4 on sec.gov; mouse and keyboard verified in real Chrome |
 | Earnings dates | Zacks' listed dates agree with stockanalysis.com 55/58; projections only 17/28, so those are marked `~`. Nothing claims company confirmation (Wells Fargo's Q3 2026 date was a day off its own IR page) |
 | Insider buys | shares and dollar value match the SEC Form 4, transaction code P |
 | Automated coverage | `tests/` at the project root — see `tests/README.md` |
@@ -385,6 +386,24 @@ live status line for each: *"Nothing notable in the last 30 days"*, or
 *"Appears during pre-market and after-hours"*, or a count when there is one.
 
 The page stays silent; the explanation lives where someone goes looking.
+
+
+### Every row links to its SEC filing
+
+Clicking an insider row (or Enter on it) opens the SEC's own full-text search
+for that person's Form 4 at that company, filed within ten days of the trade —
+the filing is the source of truth for every figure on the row.
+
+The link is built from what every Form 4 contains, the filer's name and the
+company's ticker, because Nasdaq supplies no filing ID and its insider IDs are
+**not** SEC CIKs (0 of 79 matched — linking by them would have opened other
+people's filings). Against known filings the search returned exactly the right
+Form 4 in 5 of 6 cases, and that filing plus one other by the same person in
+the sixth. `tests/accuracy.test.mjs` runs every live insider row's link on
+sec.gov and requires that filer's Form 4 at that company to come back.
+
+The link is laid over the row (`.rlink`), so the whole row is the target and
+nothing about its layout changes; it opens a new tab and is keyboard-reachable.
 
 ## Request discipline
 

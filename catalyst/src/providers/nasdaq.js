@@ -592,7 +592,7 @@ const INSIDER_WINDOW_DAYS = 30;
 const INSIDER_PER_SYMBOL = 3;
 
 /** "BOURLA ALBERT" -> "Bourla Albert" */
-function titleCase(v) {
+export function titleCase(v) {
   return String(v || '').toLowerCase().replace(/\b([a-z])/g, (m) => m.toUpperCase()).trim();
 }
 

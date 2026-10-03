@@ -143,6 +143,11 @@ main > #up{margin-bottom:0}   /* the grid gap owns the spacing now */
   transition:background .18s var(--ease);
 }
 .row:not(.sk):not(.more):hover{background:var(--surf)}
+/* An insider row opens its SEC filing. The link is laid over the row, so the
+   whole row is the target and nothing about its layout changes. */
+.row.buy{position:relative}
+.rlink{position:absolute; inset:0; z-index:1; border-radius:9px}
+.rlink:focus-visible{outline:2px solid var(--acc); outline-offset:-2px}
 .sym{font-weight:640; font-size:14.5px; letter-spacing:-.008em; min-width:52px; flex:none}
 .evt{color:var(--mut); font-size:13.5px; flex:1 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
 .tm{color:var(--dim)}
