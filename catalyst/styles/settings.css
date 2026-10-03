@@ -1,0 +1,182 @@
+/* Non-critical: loaded after first paint, only ever seen once the panel opens.
+   Inherits the design tokens declared in newtab.html's critical block. */
+
+.ov{position:fixed; inset:0; z-index:50; display:none}
+.ov.on{display:block}
+
+.ovbd{
+  position:absolute; inset:0; background:rgba(0,0,0,.52);
+  -webkit-backdrop-filter:blur(3px); backdrop-filter:blur(3px);
+  animation:ovf .2s var(--ease) both;
+}
+:root[data-theme="light"] .ovbd{background:rgba(20,20,22,.3)}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]) .ovbd{background:rgba(20,20,22,.3)}}
+@keyframes ovf{from{opacity:0}to{opacity:1}}
+
+.ovp{
+  position:relative; max-width:420px; margin:9vh auto 0; padding:22px;
+  background:var(--panel); border:1px solid var(--line); border-radius:16px;
+  box-shadow:0 24px 70px -12px rgba(0,0,0,.6), 0 2px 8px rgba(0,0,0,.3);
+  max-height:82vh; overflow-y:auto; overscroll-behavior:contain;
+  animation:ovr .26s var(--ease) both;
+}
+@keyframes ovr{from{opacity:0; transform:translate3d(0,10px,0) scale(.985)}to{opacity:1; transform:none}}
+@media (prefers-reduced-motion:reduce){
+  .ovp,.ovbd{animation:none}
+}
+
+.ovh{display:flex; align-items:center; justify-content:space-between; margin-bottom:20px}
+.ovh h2{font-size:15px; font-weight:600; letter-spacing:-.012em}
+.x{
+  background:none; border:0; padding:6px; margin:-6px; cursor:pointer; color:var(--dim);
+  border-radius:7px; line-height:0; display:inline-flex; transition:color .16s, background .16s;
+}
+.x:hover{color:var(--txt); background:var(--surf)}
+
+.fld{margin-bottom:20px}
+.fld:last-child{margin-bottom:0}
+.fld.inline{display:flex; align-items:center; justify-content:space-between; gap:14px}
+.lbl{
+  display:block; font-size:10.5px; font-weight:600; text-transform:uppercase;
+  letter-spacing:.085em; color:var(--dim); margin-bottom:9px;
+}
+.rows2{display:flex; flex-direction:column; gap:11px}
+.rw{display:flex; align-items:center; justify-content:space-between; gap:14px}
+.rw label{font-size:13px; color:var(--txt); cursor:pointer}
+.rw.sub{padding-left:14px; border-left:1px solid var(--line); margin-left:1px}
+.rw.sub label{font-size:12.5px; color:var(--mut)}
+.rw.off{opacity:.45}
+.rw.off label{cursor:default}
+.rwhint{font-size:11.5px; line-height:1.5; color:var(--dim); margin:-4px 0 2px}
+.about{font-size:11.5px; line-height:1.55; color:var(--dim); margin:18px 0 0; padding-top:14px; border-top:1px solid var(--line)}
+.rwhint:empty{display:none}
+.rwhint.sub{padding-left:14px; border-left:1px solid var(--line); margin-left:1px}
+.fld.inline .lbl{margin-bottom:0; text-transform:none; font-size:13px; letter-spacing:0; color:var(--txt); font-weight:450}
+.cnt{float:right; letter-spacing:0; text-transform:none; font-weight:450; font-variant-numeric:tabular-nums}
+
+/* ticker list */
+.tk{list-style:none; display:flex; flex-wrap:wrap; gap:6px; margin-bottom:9px}
+.tk:empty{display:none}
+.tk li{
+  display:inline-flex; align-items:center; gap:5px; padding:5px 6px 5px 10px;
+  background:var(--surf); border:1px solid var(--line); border-radius:8px;
+  font-size:12.5px; font-weight:560; letter-spacing:.012em;
+}
+.tk li.none{color:var(--dim); font-weight:400; padding:5px 10px; letter-spacing:0}
+.rm{
+  background:none; border:0; padding:2px; cursor:pointer; color:var(--dim);
+  border-radius:4px; line-height:0; display:inline-flex; transition:color .16s, background .16s;
+}
+.rm:hover{color:var(--dn); background:var(--surf2)}
+
+.in{
+  flex:1; min-width:0; font:inherit; font-size:13.5px; color:var(--txt);
+  background:var(--surf); border:1px solid var(--line); border-radius:9px; padding:9px 11px;
+  transition:border-color .16s, background .16s;
+}
+.in::placeholder{color:var(--dim)}
+.in:focus{outline:none; border-color:var(--acc); background:var(--surf2)}
+.in:disabled{opacity:.45; cursor:not-allowed}
+
+.addbtn{
+  width:100%; font:inherit; font-size:13px; font-weight:500; color:var(--mut);
+  background:var(--surf); border:1px dashed var(--line); border-radius:9px;
+  padding:9px; cursor:pointer;
+  transition:color .16s var(--ease), border-color .16s var(--ease), background .16s var(--ease);
+}
+.addbtn:hover{color:var(--txt); border-color:var(--mut); background:var(--surf2)}
+.addbtn:disabled{opacity:.5; cursor:default}
+.addbtn:disabled:hover{color:var(--mut); border-color:var(--line); background:var(--surf)}
+
+
+.msg{font-size:12px; margin-top:7px; color:var(--mut); min-height:0}
+.msg:empty{display:none}
+.msg.good{color:var(--up)} .msg.bad{color:var(--dn)} .msg.warn{color:var(--acc)}
+.hint{font-size:11.5px; color:var(--dim); margin-top:7px; line-height:1.55}
+.hint a{color:var(--mut); text-decoration:underline; text-underline-offset:2px}
+.hint a:hover{color:var(--txt)}
+
+/* switch */
+.sw{
+  position:relative; width:38px; height:22px; flex:none; cursor:pointer; padding:0;
+  background:var(--surf2); border:1px solid var(--line); border-radius:11px;
+  transition:background .2s var(--ease);
+}
+.sw[aria-checked="true"]{background:var(--acc); border-color:transparent}
+.knob{
+  position:absolute; top:2px; left:2px; width:16px; height:16px; border-radius:50%;
+  background:var(--mut); transition:transform .2s var(--ease), background .2s var(--ease);
+}
+.sw[aria-checked="true"] .knob{transform:translateX(16px); background:#fff}
+
+/* theme segmented control */
+.seg{display:inline-flex; background:var(--surf); border:1px solid var(--line); border-radius:9px; padding:2px; gap:2px}
+.seg button{
+  font:inherit; font-size:12.5px; color:var(--mut); background:none; border:0;
+  padding:5px 11px; border-radius:7px; cursor:pointer; transition:background .16s, color .16s;
+}
+.seg button:hover{color:var(--txt)}
+.seg button.on{background:var(--surf2); color:var(--txt); font-weight:540}
+
+.ovp :focus-visible{outline:2px solid var(--acc); outline-offset:2px}
+.in:focus-visible{outline:none}
+
+/* ------------------------------------------------------------- search panel */
+.sov .sp{
+  position:relative; max-width:460px; margin:13vh auto 0; overflow:hidden;
+  background:var(--panel); border:1px solid var(--line); border-radius:14px;
+  box-shadow:0 24px 70px -12px rgba(0,0,0,.6), 0 2px 8px rgba(0,0,0,.3);
+  animation:ovr .24s var(--ease) both;
+}
+@media (prefers-reduced-motion:reduce){ .sov .sp{animation:none} }
+
+.si{
+  width:100%; font:inherit; font-size:15px; color:var(--txt);
+  background:none; border:0; border-bottom:1px solid var(--line); padding:15px 18px;
+}
+.si:focus{outline:none}
+.si::placeholder{color:var(--dim)}
+
+.sres{list-style:none; max-height:min(46vh,320px); overflow-y:auto; overscroll-behavior:contain}
+.sres:empty{display:none}
+.sres li{
+  display:flex; align-items:baseline; gap:10px; padding:9px 18px; cursor:pointer;
+  transition:background .12s var(--ease);
+}
+.sres li:hover{background:var(--surf)}
+.sres li.on{background:var(--surf2)}
+.rsym{font-size:13px; font-weight:640; letter-spacing:.012em; min-width:60px; flex:none}
+.rnm{
+  flex:1 1 auto; min-width:0; font-size:12.5px; color:var(--mut);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.rex{font-size:10.5px; color:var(--dim); flex:none; letter-spacing:.03em}
+.rnm.rdir{font-style:italic; color:var(--dim)}
+.sres li.owned{cursor:default}
+.sres li.owned .rsym, .sres li.owned .rnm{opacity:.45}
+.sres li.owned .rex{color:var(--up); opacity:.8}
+
+.smsg{padding:11px 18px; font-size:12.5px; color:var(--mut)}
+.smsg:empty{display:none}
+.smsg.bad{color:var(--dn)}
+.smsg.warn{color:var(--acc)}
+
+/* ---------------------------------------------------------------- sort menu */
+.smenu{
+  position:absolute; top:100%; right:0; z-index:30; min-width:158px; margin-top:5px;
+  background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:4px;
+  box-shadow:0 14px 36px -14px var(--shadow), 0 2px 6px rgba(0,0,0,.18);
+  display:none;
+}
+.smenu.on{display:block; animation:ovr .16s var(--ease) both}
+@media (prefers-reduced-motion:reduce){ .smenu.on{animation:none} }
+.smenu button{
+  display:flex; align-items:center; justify-content:space-between; gap:14px; width:100%;
+  font:inherit; font-size:12.5px; color:var(--txt); background:none; border:0;
+  padding:7px 9px; border-radius:7px; cursor:pointer; text-align:left;
+  transition:background .12s var(--ease);
+}
+.smenu button:hover{background:var(--surf)}
+.smenu button .tick{color:var(--acc); font-size:11px; font-weight:700}
+.smenu .sdiv{height:1px; background:var(--line); margin:4px 2px}
+.smenu .dirbtn{color:var(--mut); font-size:12px}

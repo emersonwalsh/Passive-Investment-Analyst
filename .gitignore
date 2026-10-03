@@ -1,0 +1,10 @@
+# Raw captured market data. It is third-party data and not ours to republish;
+# keep captures locally for tests/replay.test.mjs.
+tests/fixtures/local/
+
+# Build output: the store upload is built from catalyst/ on demand.
+*.zip
+
+# OS / editor noise
+.DS_Store
+node_modules/

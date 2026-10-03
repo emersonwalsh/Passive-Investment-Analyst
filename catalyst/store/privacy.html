@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Passive Investment Analyst — Privacy Policy</title>
+<style>
+  :root{color-scheme:light dark}
+  body{max-width:44rem;margin:0 auto;padding:3rem 1.25rem 5rem;
+    font:16px/1.65 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+    color:#16161a;background:#fbfbfa}
+  @media(prefers-color-scheme:dark){body{color:#e8e8ea;background:#0d0d10}}
+  h1{font-size:1.7rem;letter-spacing:-.02em;margin:0 0 .3rem}
+  h2{font-size:1.05rem;margin:2.2rem 0 .6rem;letter-spacing:-.01em}
+  p{margin:.7rem 0} ul{margin:.7rem 0 .7rem 1.1rem} li{margin:.35rem 0}
+  table{border-collapse:collapse;width:100%;margin:1rem 0;font-size:.94rem}
+  th,td{text-align:left;padding:.5rem .7rem;border-bottom:1px solid rgba(128,128,128,.28);vertical-align:top}
+  th{font-weight:600}
+  a{color:inherit;text-underline-offset:2px}
+  em{opacity:.65;font-style:normal;font-size:.9rem}
+</style></head><body>
+<h1>Passive Investment Analyst — Privacy Policy</h1>
+<p><em>Last updated: 14 September 2026</em></p>
+<p>Passive Investment Analyst does not collect, sell, or share any personal information. It has no server, so nothing you enter is ever sent to the developer.</p>
+<h2>What Passive Investment Analyst stores</h2>
+<p>Everything Passive Investment Analyst stores lives on your own device, in your browser's extension storage. Nothing is uploaded to us, because there is no "us" — Passive Investment Analyst has no server, no database, and no backend of any kind.</p>
+<table><thead><tr><th>Stored on your device</th><th>Why</th></tr></thead><tbody><tr><td>Your ticker list</td><td>To know which stocks to show</td></tr><tr><td>Your Finnhub API key (optional)</td><td>To make requests to Finnhub on your behalf. Never synced between devices.</td></tr><tr><td>Cached prices and earnings dates</td><td>So the new tab renders instantly and works offline</td></tr><tr><td>Company names, exchanges and logos</td><td>To label cards and build "open in Google Finance" links</td></tr><tr><td>Your display settings (theme, sections, sort)</td><td>To remember your preferences</td></tr><tr><td>A random device identifier</td><td>Created on install so this browser can recognise its own sync writes. It is not linked to you, your account, or your device, and is never sent to any data provider.</td></tr><tr><td>Recently reported earnings results</td><td>To show how a company did against estimates</td></tr><tr><td>Notable insider purchases</td><td>To surface open-market buys by company executives</td></tr></tbody></table>
+<h2>Where your data goes</h2>
+<p>Passive Investment Analyst makes network requests to exactly three providers, and only to fetch the market data and logos it displays:</p>
+<p><strong>finnhub.io</strong> — <em>optional</em>. Passive Investment Analyst works without any account. If you choose to add a Finnhub API key, quotes and earnings dates are sourced from Finnhub instead, and those requests include the key <strong>you</strong> supplied, because that is how Finnhub authenticates you. Your key is never sent anywhere else, and it is never written to the page's local cache. Company logos are also fetched from Finnhub's public image CDN; those requests carry only a ticker symbol and no key, and each logo is downloaded once and then stored on your device. Finnhub's own privacy policy governs how they handle those requests: <a href="https://finnhub.io/privacy-policy">https://finnhub.io/privacy-policy</a></p>
+<p><strong>financialmodelingprep.com</strong> — company logos. These requests contain only a ticker symbol. No key, no account, no identifier. Each logo is downloaded once and then stored on your device.</p>
+<p><strong>api.nasdaq.com</strong> — the default source for everything: quotes, earnings dates, extended-hours prices, reported results, company name search, intraday price history for the sparklines, and a fallback earnings calendar. These requests contain only a ticker symbol or a date. No key, no account, no identifier of any kind is sent.</p>
+<p>No other network requests are made. Passive Investment Analyst contains no analytics, no telemetry, no advertising, no tracking pixels, no cookies, and no third-party scripts. It loads no remote code — every file that runs is included in the extension package and reviewable in the source.</p>
+<h2>What Passive Investment Analyst never does</h2>
+<ul><li>It never reads your browsing history, bookmarks, tabs, or the content of any web page. It has no permission to do so.</li><li>It never sees your Finnhub account, portfolio, positions, or balances. Passive Investment Analyst only reads public market data.</li><li>It never sends your ticker list, settings, or API key to the developer.</li><li>It never sends your API key anywhere except Finnhub, and only if you add one.</li><li>Ticker symbols do reach the data providers listed above — that is how prices and dates are fetched — but only one symbol per request, with no account, identifier, or other information attached.</li></ul>
+<h2>Cross-device sync</h2>
+<p>If you are signed into Chrome, your ticker list, display preferences, the company names and exchanges shown on your cards, and the random device identifier described above sync between your own browsers using Chrome's built-in extension sync. That data goes to your Google account, not to us — Passive Investment Analyst has no server to send it to.</p>
+<p>Your API key is deliberately <strong>excluded</strong> from sync and never leaves the device you entered it on. Cached prices, charts and logos are also excluded.</p>
+<h2>Deleting your data</h2>
+<p>Removing a ticker deletes its cached quote, earnings, and company data immediately. Uninstalling the extension removes everything Passive Investment Analyst has stored. There is nothing held elsewhere to request the deletion of.</p>
+<h2>Children</h2>
+<p>Passive Investment Analyst is not directed at children and collects no information from anyone.</p>
+<h2>Changes</h2>
+<p>Any change to this policy will be published with the corresponding extension update and reflected in the date above.</p>
+<h2>Contact</h2>
+<p>Questions about this policy: <a href="mailto:emersonwalsh@gmail.com">emersonwalsh@gmail.com</a></p>
+</body></html>

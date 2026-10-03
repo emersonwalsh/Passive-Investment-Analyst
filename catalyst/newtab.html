@@ -1,0 +1,380 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>New Tab</title>
+<meta name="color-scheme" content="dark light">
+<!-- Without this a narrow window is laid out against a ~980px virtual viewport
+     and then scaled, so the breakpoints below never fire and the page renders
+     as a shrunken desktop layout rather than a mobile one. -->
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+/* ---- critical: everything needed for first paint ---- */
+:root{
+  --bg:#08080a; --glow:255,182,72;
+  --txt:rgba(255,255,255,.92); --mut:rgba(255,255,255,.52); --dim:rgba(255,255,255,.46);
+  --line:rgba(255,255,255,.07); --surf:rgba(255,255,255,.032); --surf2:rgba(255,255,255,.06);
+  --acc:#ffb648; --up:#3ddc91; --dn:#ff6b60; --flat:rgba(255,255,255,.46);
+  --panel:#15151b; --faint:rgba(255,255,255,.22);
+  --mesh1:255,178,72; --mesh2:108,132,255; --dot:rgba(255,255,255,.065); --shadow:rgba(0,0,0,.55);
+  --ease:cubic-bezier(.22,1,.36,1);
+}
+:root[data-theme="light"]{
+  --bg:#fbfbfa; --glow:180,110,0;
+  --txt:rgba(12,12,14,.92); --mut:rgba(12,12,14,.63); --dim:rgba(12,12,14,.58);
+  --line:rgba(12,12,14,.09); --surf:rgba(12,12,14,.035); --surf2:rgba(12,12,14,.07);
+  --acc:#a56609; --up:#088550; --dn:#d13b2e; --flat:rgba(12,12,14,.58);
+  --panel:#ffffff; --faint:rgba(12,12,14,.26);
+  --mesh1:255,166,54; --mesh2:96,124,246; --dot:rgba(12,12,14,.07); --shadow:rgba(12,12,14,.16);
+}
+@media (prefers-color-scheme:light){
+  :root:not([data-theme="dark"]){
+    --bg:#fbfbfa; --glow:180,110,0;
+    --txt:rgba(12,12,14,.92); --mut:rgba(12,12,14,.63); --dim:rgba(12,12,14,.58);
+    --line:rgba(12,12,14,.09); --surf:rgba(12,12,14,.035); --surf2:rgba(12,12,14,.07);
+    --acc:#a56609; --up:#088550; --dn:#d13b2e; --flat:rgba(12,12,14,.58);
+    --panel:#ffffff; --faint:rgba(12,12,14,.26);
+    --mesh1:255,166,54; --mesh2:96,124,246; --dot:rgba(12,12,14,.07);
+    --shadow:rgba(12,12,14,.16);
+  }
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{background:var(--bg)}
+body{
+  background:var(--bg); color:var(--txt); min-height:100vh;
+  font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  font-size:14px; line-height:1.5; -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+/* Ambient field: a two-point colour mesh plus a warm wash whose intensity is
+   keyed to the nearest catalyst. Fixed, pointer-events:none, composited —
+   pure paint, never layout, so it can't cost a millisecond of reflow. */
+body::before{
+  content:""; position:fixed; inset:0; pointer-events:none; z-index:0;
+  background:
+    radial-gradient(120% 70% at 50% -18%, rgba(var(--glow),calc(.11 * var(--heat,0))) 0%, transparent 66%),
+    radial-gradient(68% 52% at 86% 4%,  rgba(var(--mesh1),.075) 0%, transparent 62%),
+    radial-gradient(64% 54% at 6% 96%,  rgba(var(--mesh2),.065) 0%, transparent 64%);
+  transition:opacity .8s var(--ease);
+}
+/* Fine dot grid, faded out toward the bottom so it reads as texture, not pattern. */
+body::after{
+  content:""; position:fixed; inset:0; pointer-events:none; z-index:0;
+  background-image:radial-gradient(circle at 1px 1px, var(--dot) 1px, transparent 0);
+  background-size:24px 24px;
+  -webkit-mask-image:radial-gradient(88% 62% at 50% -4%, #000 0%, transparent 78%);
+  mask-image:radial-gradient(88% 62% at 50% -4%, #000 0%, transparent 78%);
+}
+.app{position:relative; z-index:1; max-width:1180px; margin:0 auto;
+  padding:clamp(34px,6vh,84px) clamp(18px,4vw,32px) 30px}
+
+/* Two columns once there is room for them: today's movement on the left,
+   the calendar and insider rows on the right. Below that they stack, in the
+   same order they are written, so reading order never diverges from what is
+   on screen. The single-column rules are the default — the wide layout is the
+   enhancement, not the other way round. */
+main{display:grid; gap:26px; align-items:start}
+/* Grid and flex children default to min-width:auto, so they refuse to shrink
+   below their content's min-content width and push the page into a horizontal
+   scroll on narrow screens. Everything in the layout chain has to opt out. */
+main > section{min-width:0}
+@media (min-width:1000px){
+  main{grid-template-columns:1fr 1fr; gap:clamp(30px,3.6vw,52px)}
+  /* Either side can be switched off in settings. When one is, the other takes
+     the full width rather than leaving half the page empty. */
+  main:has(> #up.hide) > #holdwrap{grid-column:1 / -1}
+  main:has(> #holdwrap.hide) > #up{grid-column:1 / -1}
+}
+main > #up{margin-bottom:0}   /* the grid gap owns the spacing now */
+
+/* header */
+.hdr{display:flex; align-items:baseline; justify-content:space-between; gap:16px; margin-bottom:34px}
+.date{font-size:19px; font-weight:560; letter-spacing:-.017em}
+/* Chrome may paint before boot.js runs: MV3's CSP forbids inlining it, and the
+   parser can yield a frame while it waits on an external script. Empty, these
+   collapsed the header to 0px, so every new tab opened with <main> dropping
+   29px once boot filled them (CLS 0.006, measured in real Chrome). A
+   non-breaking space gives each the line box it will have when filled — in
+   whatever system font the platform uses, which a fixed height could not. */
+.date:empty::before,.pill:empty::before{content:"\00a0"}
+/* The pill is right-aligned, so growing from a space to "Closed" moves its left
+   edge. Hidden-but-present keeps the header height without being an element
+   that visibly "moved". */
+.pill:empty{visibility:hidden}
+.pill{
+  font-size:11.5px; font-weight:520; color:var(--mut); letter-spacing:.01em;
+  display:inline-flex; align-items:center; gap:6px; white-space:nowrap; flex:none;
+}
+.dot{width:5px; height:5px; border-radius:50%; background:currentColor; opacity:.55; flex:none}
+.pill.open{color:var(--up)} .pill.open .dot{opacity:1; animation:bp 2.6s var(--ease) infinite}
+.pill.ext .dot{opacity:.8}
+@keyframes bp{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.82)}}
+
+/* coming up */
+.sec{margin-bottom:26px}
+.grp+.grp{margin-top:21px}
+/* a section that follows another needs breathing room */
+.grp + .shd{margin-top:28px}
+.shd{
+  display:flex; align-items:center; gap:7px;
+  font-size:11px; font-weight:640; text-transform:uppercase; letter-spacing:.1em;
+  color:var(--mut); margin-bottom:14px;
+}
+.shi{width:13px; height:13px; flex:none; opacity:.75}
+.sechd{position:relative; display:flex; align-items:center; gap:10px; margin-bottom:14px}
+.sechd .shd{margin-bottom:0}
+.sortbtn{
+  margin-left:auto; display:inline-flex; align-items:center; gap:4px; flex:none;
+  font:inherit; font-size:10.5px; font-weight:560; letter-spacing:.01em; text-transform:none;
+  color:var(--dim); background:none; border:0; border-radius:6px; padding:3px 6px; cursor:pointer;
+  transition:color .16s var(--ease), background .16s var(--ease);
+}
+.sortbtn:hover{color:var(--txt); background:var(--surf)}
+.sortbtn:focus-visible{outline:2px solid var(--acc); outline-offset:1px}
+.scaret{font-size:10px; opacity:.75; line-height:1}
+.ghd{
+  font-size:10.5px; font-weight:600; text-transform:uppercase; letter-spacing:.085em;
+  color:var(--dim); margin-bottom:9px;
+}
+.rows{list-style:none}
+.row{
+  display:flex; align-items:baseline; gap:12px; padding:9px 10px; margin:0 -10px;
+  border-radius:9px; min-height:40px;
+  transition:background .18s var(--ease);
+}
+.row:not(.sk):not(.more):hover{background:var(--surf)}
+.sym{font-weight:640; font-size:14.5px; letter-spacing:-.008em; min-width:52px; flex:none}
+.evt{color:var(--mut); font-size:13.5px; flex:1 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.tm{color:var(--dim)}
+/* A projected earnings date: same position, visibly less certain. */
+.rel.est{color:var(--dim); font-style:normal}
+.row.soon .rel.est,.row.now .rel.est{color:var(--dim); font-weight:inherit}
+.fn{margin:10px 0 0; font-size:11.5px; line-height:1.5; color:var(--dim)}
+/* Screen-reader-only text: the "~" is visual shorthand and needs words. */
+.vh{position:absolute; width:1px; height:1px; margin:-1px; padding:0; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0}
+.rel{
+  color:var(--mut); font-size:13px; flex:none; text-align:right;
+  font-variant-numeric:tabular-nums; font-feature-settings:"tnum" 1;
+}
+.row.buy .rel{font-weight:640}
+.row.buy .sym{color:var(--txt)}
+.row.rep .sym{color:var(--mut)}
+.row.rep .rel{font-weight:600}
+.row.rep .rel.u{color:var(--up)} .row.rep .rel.d{color:var(--dn)} .row.rep .rel.f{color:var(--flat)}
+.row.soon .rel{color:var(--acc); font-weight:540}
+.row.soon .sym{color:var(--txt)}
+
+/* today / tomorrow — the rows that must not be missed */
+.row.now{
+  background:linear-gradient(90deg, rgba(var(--glow),.13) 0%, rgba(var(--glow),.04) 45%, transparent 85%);
+  box-shadow:inset 2px 0 0 var(--acc);
+}
+.row.now:not(.sk):hover{background:linear-gradient(90deg, rgba(var(--glow),.18) 0%, rgba(var(--glow),.06) 45%, transparent 85%)}
+.row.now .sym{color:var(--acc); font-weight:700}
+.row.now .rel{color:var(--acc); font-weight:640}
+.row.now .evt{color:var(--mut)}
+.pip{
+  width:6px; height:6px; border-radius:50%; background:var(--acc); flex:none;
+  margin-left:-2px; margin-right:-4px; align-self:center;
+}
+@media (prefers-reduced-motion:no-preference){
+  .pip{animation:pulse 2.2s var(--ease) infinite}
+}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.72)}}
+.more{padding:8px 10px; margin:0 -10px; color:var(--dim); font-size:12.5px; list-style:none}
+
+/* holdings */
+/* The rule between the two blocks only makes sense when they are stacked;
+   side by side the grid gap already separates them. It sits on whichever
+   block comes second, which is now the upper sections. */
+#holdwrap{border-top:0; padding-top:0}
+@media (max-width:999px){
+  main > #up:not(.hide){border-top:1px solid var(--line); padding-top:22px}
+}
+.hold{display:grid; grid-template-columns:repeat(auto-fill,minmax(134px,1fr)); gap:8px}
+/* Below roughly two 134px tracks, auto-fill has no valid answer that fits, so
+   pin the count and let the tracks themselves shrink. minmax(0,…) is what
+   permits that — minmax(134px,…) is a floor the container cannot honour. */
+@media (max-width:430px){
+  .hold{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+.cell{min-width:0}
+.cell{
+  position:relative; padding:10px 11px; display:flex; flex-direction:column; gap:2px;
+  background:var(--surf); border:1px solid transparent; border-radius:11px;
+  min-height:138px; overflow:hidden; text-align:left; cursor:pointer;
+  transition:background .22s var(--ease), border-color .22s var(--ease),
+             box-shadow .22s var(--ease), transform .22s var(--ease);
+}
+.cell:hover{
+  background:var(--surf2); border-color:var(--line);
+  box-shadow:0 10px 26px -12px var(--shadow);
+}
+.cell:hover .spf{opacity:.17}
+.cell:hover .cpx{color:var(--txt)}
+.cell:has(.ca:focus-visible){border-color:var(--acc)}
+@media (prefers-reduced-motion:no-preference){
+  .cell:hover{transform:translateY(-2px)}
+  .cell:active{transform:translateY(0); transition-duration:.08s}
+}
+.spf{transition:opacity .22s var(--ease)}
+
+/* Whole-card link: the Google Finance anchor stretches over the card, so a
+   click anywhere opens it — while keeping real anchor semantics (cmd-click,
+   middle-click, open-in-new-tab). The remove button sits above it. */
+.ca.gf::after{content:""; position:absolute; inset:0; z-index:1; border-radius:11px}
+.ca[data-rm]{position:relative; z-index:2}
+.chd{display:flex; align-items:center; gap:6px; min-height:18px}
+.cact{margin-left:auto}
+.clogo{
+  width:18px; height:18px; flex:none; display:block; border-radius:5px;
+  object-fit:contain; background:var(--surf2);
+}
+/* Most logos are drawn for light backgrounds, so on a dark card a dark mark
+   simply vanished (Keurig Dr Pepper's did). Give image logos their own light
+   tile in every theme. border-box keeps the 18px footprint, so cards don't move. */
+img.clogo{box-sizing:border-box; padding:1.5px; background:#fff; box-shadow:inset 0 0 0 1px rgba(0,0,0,.06)}
+.clogo.mono{
+  display:flex; align-items:center; justify-content:center; color:#fff;
+  font-size:8px; font-weight:700; letter-spacing:.01em;
+  background:hsl(var(--h,220) 48% 46%);
+}
+.csym{font-size:11.5px; font-weight:640; color:var(--mut); letter-spacing:.028em}
+.cnm{
+  font-size:11px; line-height:1.4; color:var(--dim); min-height:15px;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.cpx{font-size:17px; line-height:1.35; font-weight:560; letter-spacing:-.015em; font-variant-numeric:tabular-nums}
+.cch{font-size:11.5px; line-height:1.5; font-weight:540; font-variant-numeric:tabular-nums; color:var(--flat)}
+.cch.u{color:var(--up)} .cch.d{color:var(--dn)}
+.cell.nod .cpx,.cell.nod .cch{color:var(--dim)}
+.cpx.skl{display:flex; align-items:center}
+.cpx.skl .skb{width:64%; height:11px}
+.cch.pend{color:var(--dim)}
+.cnet{color:var(--dim); font-weight:450}
+.cext{
+  display:flex; align-items:baseline; gap:4px; margin-top:3px;
+  font-size:10.5px; line-height:1.4; color:var(--dim); font-variant-numeric:tabular-nums;
+  white-space:nowrap; overflow:hidden;
+}
+.cext em{
+  font-style:normal; font-size:8.5px; font-weight:700; letter-spacing:.04em;
+  color:var(--faint); border:1px solid var(--line); border-radius:4px; padding:0 3px; flex:none;
+}
+.cext b{font-weight:600}
+.cext b.u{color:var(--up)} .cext b.d{color:var(--dn)} .cext b.f{color:var(--flat)}
+
+/* hover actions — reserved space, so revealing them never shifts anything */
+.cact{display:flex; gap:2px; flex:none; opacity:0; margin-left:auto; transition:opacity .15s var(--ease)}
+.cell:hover .cact, .cell:focus-within .cact{opacity:1}
+.ca{
+  width:18px; height:18px; padding:0; flex:none; border:0; background:none; cursor:pointer;
+  color:var(--faint); border-radius:5px; font-size:12.5px; line-height:1; text-decoration:none;
+  display:inline-flex; align-items:center; justify-content:center;
+  transition:color .14s var(--ease), background .14s var(--ease);
+}
+.ca:hover{color:var(--txt); background:var(--surf2)}
+.ca[data-rm]:hover{color:var(--dn)}
+.ca:focus-visible{opacity:1; outline:2px solid var(--acc); outline-offset:1px}
+
+/* sparkline */
+.spark{width:100%; height:30px; display:block; margin-top:auto}
+.sparkph{height:30px; margin-top:auto}
+.spl{fill:none; stroke:currentColor; stroke-width:1.3; stroke-linejoin:round; stroke-linecap:round; vector-effect:non-scaling-stroke}
+.spf{fill:currentColor; opacity:.11; stroke:none}
+.spb{stroke:currentColor; opacity:.3; stroke-width:1; stroke-dasharray:2 2.5; vector-effect:non-scaling-stroke}
+.spark.u{color:var(--up)} .spark.d{color:var(--dn)} .spark.f{color:var(--flat)}
+
+/* add card */
+.cell.add{
+  align-items:center; justify-content:center; gap:5px; cursor:pointer; font:inherit;
+  background:none; border:1px dashed var(--line); color:var(--dim);
+  transition:color .16s var(--ease), border-color .16s var(--ease), background .16s var(--ease);
+}
+.cell.add:hover{color:var(--mut); border-color:var(--mut); background:var(--surf); box-shadow:none}
+.cell.add.off{cursor:default; opacity:.6; border-style:dashed}
+.cell.add.off:hover{color:var(--dim); border-color:var(--line); background:none; transform:none}
+.cell.add:focus-visible{outline:2px solid var(--acc); outline-offset:1px}
+.addg{font-size:19px; line-height:1; font-weight:300}
+.addt{font-size:11.5px; font-weight:500}
+
+/* footer */
+.ftr{display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:22px}
+.upd{font-size:11.5px; color:var(--dim); font-variant-numeric:tabular-nums}
+/* The footer doubles as the manual refresh. It gave no sign of being clickable,
+   so the one recovery path in the whole UI was invisible. Cue it on hover and
+   focus only — no persistent chrome, and no size change, so nothing shifts. */
+.upd[role=button]{cursor:pointer; border-radius:4px; transition:color .12s ease}
+.upd[role=button]:hover{color:var(--fg)}
+.upd[role=button]:focus-visible{outline:2px solid var(--accent,#6b7cff); outline-offset:3px; color:var(--fg)}
+.gear{
+  position:fixed; top:16px; right:16px; z-index:20;
+  background:none; border:0; padding:8px; cursor:pointer; color:var(--mut);
+  border-radius:9px; display:inline-flex; line-height:0; opacity:.55;
+  transition:color .18s var(--ease), background .18s var(--ease),
+             opacity .18s var(--ease), transform .35s var(--ease);
+}
+.gear:hover{opacity:1}
+.gear:hover{color:var(--mut); background:var(--surf)}
+.gear:active{transform:rotate(38deg)}
+.gear:focus-visible{outline:2px solid var(--acc); outline-offset:1px; color:var(--mut)}
+
+/* skeleton — identical box metrics to a real row, so nothing shifts */
+.skb{display:block; height:9px; border-radius:5px; background:var(--surf2); align-self:center}
+.row.sk{align-items:center}
+.sk .w1{width:48px; flex:none} .sk .w2{width:96px; flex:1 1 auto; max-width:120px} .sk .w3{width:56px; flex:none}
+.cell.sk .skb{align-self:flex-start; margin-top:5px}
+.cell.sk .w1{width:72%} .cell.sk .w2{width:46%}
+.sk .skb{animation:sh 1.5s ease-in-out infinite}
+@keyframes sh{0%,100%{opacity:1}50%{opacity:.45}}
+
+/* empty state */
+.empty{padding:2px 0 8px}
+.empty h1{font-size:21px; font-weight:600; letter-spacing:-.021em; margin-bottom:9px}
+.empty p{color:var(--mut); font-size:14px; max-width:44ch; margin-bottom:20px; line-height:1.62}
+.btn{
+  font:inherit; font-size:13.5px; font-weight:540; color:var(--bg); background:var(--txt);
+  border:0; border-radius:9px; padding:9px 16px; cursor:pointer;
+  transition:opacity .18s var(--ease), transform .18s var(--ease);
+}
+.btn:hover{opacity:.87} .btn:active{transform:scale(.978)}
+.btn:focus-visible{outline:2px solid var(--acc); outline-offset:2px}
+
+/* entrance — transform/opacity only: composited, zero layout shift */
+@media (prefers-reduced-motion:no-preference){
+  .anim{animation:ri .5s var(--ease) both; animation-delay:calc(var(--i,0) * 32ms)}
+}
+@keyframes ri{from{opacity:0; transform:translate3d(0,7px,0)}to{opacity:1; transform:none}}
+.hide{display:none !important}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="hdr">
+    <div class="date" id="date"></div>
+    <div class="pill" id="mkt"></div>
+  </header>
+  <main>
+    <section id="holdwrap">
+      <div class="sechd">
+        <h2 class="shd"><svg class="shi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 16.5l5.5-5.5 3.5 3.5L21 5"/><path d="M21 10V5h-5"/></svg>Today&rsquo;s movement</h2>
+        <button class="sortbtn" id="sortbtn" aria-haspopup="true" aria-expanded="false" aria-label="Sort holdings">
+          <span id="sortlbl">% change</span><span class="scaret" id="sortdir">&#8595;</span>
+        </button>
+      </div>
+      <div class="hold" id="hold"></div>
+    </section>
+    <section class="sec" id="up"></section>
+  </main>
+  <footer class="ftr">
+    <span class="upd" id="upd"></span>
+    <button class="gear" id="gear" aria-label="Settings" title="Settings">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+    </button>
+  </footer>
+</div>
+
+<script src="src/boot.js"></script>
+<script type="module" src="src/newtab.js"></script>
+</body>
+</html>

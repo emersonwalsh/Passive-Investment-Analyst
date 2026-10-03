@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Passive Investment Analyst — promo tiles</title>
+<style>
+  body{margin:0;padding:24px;background:#8a8a8a;font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+  .lbl{color:#fff;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin:18px 0 8px}
+  .tile{position:relative;overflow:hidden;background:#0b0b0e;color:rgba(255,255,255,.92)}
+  .tile::before{content:"";position:absolute;inset:0;
+    background:
+      radial-gradient(70% 60% at 88% 0%, rgba(255,178,72,.20) 0%, transparent 62%),
+      radial-gradient(64% 62% at 4% 100%, rgba(108,132,255,.16) 0%, transparent 64%);}
+  .tile::after{content:"";position:absolute;inset:0;
+    background-image:radial-gradient(circle at 1px 1px, rgba(255,255,255,.07) 1px, transparent 0);
+    background-size:22px 22px;
+    -webkit-mask-image:radial-gradient(90% 70% at 50% -6%, #000 0%, transparent 78%);}
+  .in{position:relative;z-index:2;height:100%;display:flex;flex-direction:column;justify-content:center}
+
+  /* 440x280 small tile */
+  #small{width:440px;height:280px}
+  #small .in{padding:0 32px}
+  .mark{display:flex;align-items:flex-end;gap:5px;height:34px;margin-bottom:18px}
+  .mark i{display:block;width:9px;border-radius:5px;background:rgba(255,255,255,.34)}
+  .mark i:nth-child(2){background:rgba(255,255,255,.5)}
+  .mark i:nth-child(3){background:#ffb648}
+  #small .mark i:nth-child(1){height:16px} #small .mark i:nth-child(2){height:24px} #small .mark i:nth-child(3){height:34px}
+  #small h1{font-size:38px;font-weight:640;letter-spacing:-.028em;margin:0 0 9px}
+  #small p{font-size:15px;line-height:1.45;color:rgba(255,255,255,.56);margin:0;max-width:23ch}
+  .row{display:flex;align-items:baseline;gap:10px;margin-top:22px;padding:9px 11px;border-radius:9px;
+    background:linear-gradient(90deg, rgba(255,182,72,.14) 0%, rgba(255,182,72,.03) 55%, transparent 90%);
+    box-shadow:inset 2px 0 0 #ffb648;max-width:290px}
+  .row b{color:#ffb648;font-size:14px;font-weight:700;letter-spacing:-.005em}
+  .row span{color:rgba(255,255,255,.42);font-size:13px;flex:1}
+  .row em{color:#ffb648;font-size:13px;font-weight:620;font-style:normal}
+
+  /* 1400x560 marquee */
+  #marquee{width:1400px;height:560px;margin-top:8px}
+  #marquee .in{padding:0 88px}
+  #marquee .mark{height:72px;gap:11px;margin-bottom:34px}
+  #marquee .mark i{width:19px;border-radius:10px}
+  #marquee .mark i:nth-child(1){height:34px} #marquee .mark i:nth-child(2){height:52px} #marquee .mark i:nth-child(3){height:72px}
+  #marquee h1{font-size:82px;font-weight:640;letter-spacing:-.03em;margin:0 0 18px}
+  #marquee p{font-size:29px;line-height:1.4;color:rgba(255,255,255,.56);margin:0;max-width:26ch}
+</style></head><body>
+
+<div class="lbl">Small promo tile — 440 × 280</div>
+<div class="tile" id="small"><div class="in">
+  <div class="mark"><i></i><i></i><i></i></div>
+  <h1>Passive Investment Analyst</h1>
+  <p>Earnings dates for your stocks, every time you open a tab.</p>
+  <div class="row"><b>NVDA</b><span>Earnings · after close</span><em>tomorrow</em></div>
+</div></div>
+
+<div class="lbl">Marquee promo tile — 1400 × 560 (optional, for featuring)</div>
+<div class="tile" id="marquee"><div class="in">
+  <div class="mark"><i></i><i></i><i></i></div>
+  <h1>Passive Investment Analyst</h1>
+  <p>Earnings dates for your stocks, every time you open a tab.</p>
+</div></div>
+
+</body></html>
