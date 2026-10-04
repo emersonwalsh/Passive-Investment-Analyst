@@ -18,7 +18,7 @@
   em{opacity:.65;font-style:normal;font-size:.9rem}
 </style></head><body>
 <h1>Passive Investment Analyst — Privacy Policy</h1>
-<p><em>Last updated: 14 September 2026</em></p>
+<p><em>Last updated: 3 October 2026</em></p>
 <p>Passive Investment Analyst does not collect, sell, or share any personal information. It has no server, so nothing you enter is ever sent to the developer.</p>
 <h2>What Passive Investment Analyst stores</h2>
 <p>Everything Passive Investment Analyst stores lives on your own device, in your browser's extension storage. Nothing is uploaded to us, because there is no "us" — Passive Investment Analyst has no server, no database, and no backend of any kind.</p>
@@ -28,7 +28,8 @@
 <p><strong>finnhub.io</strong> — <em>optional</em>. Passive Investment Analyst works without any account. If you choose to add a Finnhub API key, quotes and earnings dates are sourced from Finnhub instead, and those requests include the key <strong>you</strong> supplied, because that is how Finnhub authenticates you. Your key is never sent anywhere else, and it is never written to the page's local cache. Company logos are also fetched from Finnhub's public image CDN; those requests carry only a ticker symbol and no key, and each logo is downloaded once and then stored on your device. Finnhub's own privacy policy governs how they handle those requests: <a href="https://finnhub.io/privacy-policy">https://finnhub.io/privacy-policy</a></p>
 <p><strong>financialmodelingprep.com</strong> — company logos. These requests contain only a ticker symbol. No key, no account, no identifier. Each logo is downloaded once and then stored on your device.</p>
 <p><strong>api.nasdaq.com</strong> — the default source for everything: quotes, earnings dates, extended-hours prices, reported results, company name search, intraday price history for the sparklines, and a fallback earnings calendar. These requests contain only a ticker symbol or a date. No key, no account, no identifier of any kind is sent.</p>
-<p>No other network requests are made. Passive Investment Analyst contains no analytics, no telemetry, no advertising, no tracking pixels, no cookies, and no third-party scripts. It loads no remote code — every file that runs is included in the extension package and reviewable in the source.</p>
+<p>No other network requests are made. Two kinds of ordinary links appear on the page — a stock card opens its Google Finance quote, and an insider purchase opens its filing on the SEC's website (sec.gov). These open in a new tab only when you click them, like any web link; the extension itself sends nothing to those sites.</p>
+<p>Passive Investment Analyst contains no analytics, no telemetry, no advertising, no tracking pixels, no cookies, and no third-party scripts. It loads no remote code — every file that runs is included in the extension package and reviewable in the source.</p>
 <h2>What Passive Investment Analyst never does</h2>
 <ul><li>It never reads your browsing history, bookmarks, tabs, or the content of any web page. It has no permission to do so.</li><li>It never sees your Finnhub account, portfolio, positions, or balances. Passive Investment Analyst only reads public market data.</li><li>It never sends your ticker list, settings, or API key to the developer.</li><li>It never sends your API key anywhere except Finnhub, and only if you add one.</li><li>Ticker symbols do reach the data providers listed above — that is how prices and dates are fetched — but only one symbol per request, with no account, identifier, or other information attached.</li></ul>
 <h2>Cross-device sync</h2>

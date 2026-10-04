@@ -10,11 +10,12 @@ Passive Investment Analyst
 ```
 `26 chars`
 
-## Short description (132 max)
+## Summary (132 max)
+Taken from `description` in `manifest.json`; the dashboard does not let you edit it.
 ```
-See which of your stocks report earnings next, every time you open a tab. No account, no signup — just open a tab.
+Upcoming earnings, insider buying and prices for the stocks you track — every time you open a tab.
 ```
-`122 chars`
+`98 chars`
 
 ## Category
 `Productivity` — secondary interest: Finance

@@ -1,6 +1,6 @@
 # Passive Investment Analyst — Privacy Policy
 
-_Last updated: 14 September 2026_
+_Last updated: 3 October 2026_
 
 Passive Investment Analyst does not collect, sell, or share any personal information. It has no
 server, so nothing you enter is ever sent to the developer.
@@ -47,7 +47,12 @@ extended-hours prices, reported results, company name search, intraday price his
 sparklines, and a fallback earnings calendar. These requests contain only a
 ticker symbol or a date. No key, no account, no identifier of any kind is sent.
 
-No other network requests are made. Passive Investment Analyst contains no analytics, no telemetry,
+No other network requests are made. Two kinds of ordinary links appear on the
+page — a stock card opens its Google Finance quote, and an insider purchase opens
+its filing on the SEC's website (sec.gov). These open in a new tab only when you
+click them, like any web link; the extension itself sends nothing to those sites.
+
+Passive Investment Analyst contains no analytics, no telemetry,
 no advertising, no tracking pixels, no cookies, and no third-party scripts. It
 loads no remote code — every file that runs is included in the extension package
 and reviewable in the source.
